@@ -1,0 +1,23 @@
+# Claude Code runtime state (not part of the project)
+.claude/
+
+# Backend
+backend/server
+backend/eva2-server
+backend/*.exe
+
+# Frontend / Node
+node_modules/
+dist/
+build/
+coverage/
+
+# Env files with real secrets (but keep .env.example tracked)
+.env
+*.env
+!.env.example
+!*/.env.example
+
+# OS / editor cruft
+.DS_Store
+*.log

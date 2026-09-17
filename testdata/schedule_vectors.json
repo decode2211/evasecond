@@ -1,0 +1,220 @@
+{
+  "_comment": "Shared test cases for the scheduler. Both the Go tests (backend/internal/schedule/schedule_test.go) and the TypeScript tests (frontend/src/schedule/schedule.test.ts) load this file and must agree on every case. All times are milliseconds since the Unix epoch.",
+
+  "schedule_cases": [
+    {
+      "name": "start of cycle, first item",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 60000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 },
+          { "media_id": "M2", "duration_ms": 20000 },
+          { "media_id": "M3", "duration_ms": 30000 }
+        ] }
+      ],
+      "t_ms": 0,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M1", "offset_ms": 0, "item_ends_at_ms": 10000, "cycle_ends_at_ms": 60000 }
+    },
+    {
+      "name": "mid-item: worked example from spec (10s+20s+30s, 75s elapsed -> 15s into loop -> 5s into item 2)",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 },
+          { "media_id": "M2", "duration_ms": 20000 },
+          { "media_id": "M3", "duration_ms": 30000 }
+        ] }
+      ],
+      "t_ms": 75000,
+      "expected": { "ok": true, "item_index": 1, "media_id": "M2", "offset_ms": 5000, "item_ends_at_ms": 90000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "exact item boundary lands on the next item's start",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 },
+          { "media_id": "M2", "duration_ms": 20000 }
+        ] }
+      ],
+      "t_ms": 10000,
+      "expected": { "ok": true, "item_index": 1, "media_id": "M2", "offset_ms": 0, "item_ends_at_ms": 30000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "loop wrap: past the end of the playlist, restarts at item 1",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 },
+          { "media_id": "M2", "duration_ms": 20000 }
+        ] }
+      ],
+      "t_ms": 35000,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M1", "offset_ms": 5000, "item_ends_at_ms": 40000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "5-hour cycle boundary cuts an item short mid-item",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 18000000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000000 },
+          { "media_id": "M2", "duration_ms": 9000000 }
+        ] }
+      ],
+      "t_ms": 17999000,
+      "expected": { "ok": true, "item_index": 1, "media_id": "M2", "offset_ms": 7999000, "item_ends_at_ms": 18000000, "cycle_ends_at_ms": 18000000 }
+    },
+    {
+      "name": "just after the 5-hour cycle boundary, restarts at item 1 of the same version",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 18000000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000000 },
+          { "media_id": "M2", "duration_ms": 9000000 }
+        ] }
+      ],
+      "t_ms": 18000500,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M1", "offset_ms": 500, "item_ends_at_ms": 28000000, "cycle_ends_at_ms": 36000000 }
+    },
+    {
+      "name": "version switch at effective_at: before switch, old version plays",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 }
+        ] },
+        { "id": 2, "effective_at_ms": 50000, "items": [
+          { "media_id": "M2", "duration_ms": 20000 }
+        ] }
+      ],
+      "t_ms": 49999,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M1", "offset_ms": 9999, "item_ends_at_ms": 50000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "version switch at effective_at: at and after switch, new version plays from item 1",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 }
+        ] },
+        { "id": 2, "effective_at_ms": 50000, "items": [
+          { "media_id": "M2", "duration_ms": 20000 }
+        ] }
+      ],
+      "t_ms": 50000,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M2", "offset_ms": 0, "item_ends_at_ms": 70000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "empty playlist (no versions at all) shows fallback",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [],
+      "t_ms": 12345,
+      "expected": { "ok": false }
+    },
+    {
+      "name": "version exists but has zero items shows fallback",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [] }
+      ],
+      "t_ms": 12345,
+      "expected": { "ok": false }
+    },
+    {
+      "name": "before the window's cycle_anchor shows fallback (cycle hasn't started)",
+      "cycle_anchor_ms": 1000000,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 }
+        ] }
+      ],
+      "t_ms": 500000,
+      "expected": { "ok": false }
+    },
+    {
+      "name": "tie-break: two versions with the same effective_at, higher id wins",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 600000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 10000, "items": [
+          { "media_id": "M1", "duration_ms": 5000 }
+        ] },
+        { "id": 2, "effective_at_ms": 10000, "items": [
+          { "media_id": "M2", "duration_ms": 5000 }
+        ] }
+      ],
+      "t_ms": 10000,
+      "expected": { "ok": true, "item_index": 0, "media_id": "M2", "offset_ms": 0, "item_ends_at_ms": 15000, "cycle_ends_at_ms": 600000 }
+    },
+    {
+      "name": "second cycle: loop math repeats identically in cycle 2",
+      "cycle_anchor_ms": 0,
+      "cycle_ms": 60000,
+      "versions": [
+        { "id": 1, "effective_at_ms": 0, "items": [
+          { "media_id": "M1", "duration_ms": 10000 },
+          { "media_id": "M2", "duration_ms": 20000 },
+          { "media_id": "M3", "duration_ms": 30000 }
+        ] }
+      ],
+      "t_ms": 195000,
+      "expected": { "ok": true, "item_index": 1, "media_id": "M2", "offset_ms": 5000, "item_ends_at_ms": 210000, "cycle_ends_at_ms": 240000 }
+    }
+  ],
+
+  "sync_cases": [
+    {
+      "name": "before starts_at, sync is not yet active",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 9999,
+      "expected": { "active": false }
+    },
+    {
+      "name": "at starts_at, sync becomes active at offset 0",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 10000,
+      "expected": { "active": true, "media_id": "M2", "offset_ms": 0 }
+    },
+    {
+      "name": "mid-sync, before media loops",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 20000,
+      "expected": { "active": true, "media_id": "M2", "offset_ms": 10000 }
+    },
+    {
+      "name": "worked example: media shorter than sync duration loops (32s elapsed, 15s media -> 2s offset)",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 42000,
+      "expected": { "active": true, "media_id": "M2", "offset_ms": 2000 }
+    },
+    {
+      "name": "exactly at starts_at + duration, sync has just ended",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 50000,
+      "expected": { "active": false }
+    },
+    {
+      "name": "well after sync ended",
+      "sync": { "media_id": "M2", "starts_at_ms": 10000, "duration_ms": 40000, "media_duration_ms": 15000 },
+      "t_ms": 90000,
+      "expected": { "active": false }
+    },
+    {
+      "name": "no active sync at all (null)",
+      "sync": null,
+      "t_ms": 12345,
+      "expected": { "active": false }
+    }
+  ]
+}
