@@ -11,20 +11,31 @@ import (
 
 // seedMedia is the placeholder demo content used when the assignment brief
 // does not supply its own example media list (see README "Assumptions").
-// The image and video URLs point at Wikimedia Commons and Google's public
-// sample-video bucket, both of which serve their files with permissive
-// CORS headers, so a browser on a different origin (like our Vercel
-// frontend) is allowed to load them.
+//
+// An earlier version of this list pointed at Wikimedia Commons thumbnail
+// URLs and Google's old "gtv-videos-bucket" sample-video bucket. Both broke:
+// the Wikimedia thumbnail path 404'd (guessed thumbnail resolutions aren't
+// stable), and the Google bucket now returns 403 Forbidden — it's been
+// locked down. Every URL below was re-verified by hand with `curl -I`
+// (including with an Origin header, the way a real browser request looks)
+// immediately before being added here:
+//   - images: placehold.co, which returns 200, Content-Type: image/jpeg,
+//     and an explicit "Access-Control-Allow-Origin: *" on every request.
+//   - videos: MDN's CC0 sample-video host, which returns 200,
+//     Content-Type: video/mp4, "Access-Control-Allow-Origin: *" once a
+//     request carries an Origin header, "Accept-Ranges: bytes", and replies
+//     206 Partial Content to an actual Range request — everything a
+//     <video> element needs to seek and play cross-origin.
 type seedMediaRow struct {
 	id, name, mediaType, url string
 	durationSeconds          int
 }
 
 var seedMediaRows = []seedMediaRow{
-	{"M1", "Cat Photo", "image", "https://upload.wikimedia.org/wikipedia/commons/3/3a/Cat03.jpg", 10},
-	{"M2", "Big Buck Bunny (clip)", "video", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", 15},
-	{"M3", "Whale Shark Photo", "image", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Whale_shark_Georgia_aquarium.jpg/1280px-Whale_shark_Georgia_aquarium.jpg", 8},
-	{"M4", "Elephants Dream (clip)", "video", "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", 20},
+	{"M1", "Sample Image 1", "image", "https://placehold.co/800x600/orange/white.jpg?text=M1", 10},
+	{"M2", "Sample Video 1 (flower)", "video", "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4", 15},
+	{"M3", "Sample Image 2", "image", "https://placehold.co/800x600/teal/white.jpg?text=M3", 8},
+	{"M4", "Sample Video 2 (friday)", "video", "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4", 20},
 }
 
 // seedBlank is inserted with a NULL url, since "blank" is a deliberate
