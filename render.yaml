@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: eva2-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Set these two manually in the Render dashboard after the Neon
+      # database and the Vercel frontend both exist — sync: false means
+      # Render will prompt for a value instead of storing one here.
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: CYCLE_SECONDS
+        value: "18000"
+      - key: SYNC_LEAD_MS
+        value: "1500"
+      - key: SEED_ON_START
+        value: "true"
