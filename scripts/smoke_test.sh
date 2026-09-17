@@ -66,10 +66,25 @@ expect_status() {
 echo "=== Smoke test against $BASE_URL ==="
 
 # ---- 1. health -----------------------------------------------------------
+# This first request doubles as a reachability check for the whole script.
+# If the server can't be reached at all (wrong URL, backend not running,
+# DNS failure, connection refused, timeout), curl itself fails (a non-zero
+# exit code) and/or reports status "000" — every other check below would
+# then fail too, for the exact same underlying reason, producing a wall of
+# confusing "expected 200/201/204, got 000" noise. So this one case gets
+# its own clear message and an immediate exit instead of a cascade.
 echo ""
 echo "-- GET /health"
-HEALTH_BODY=$(curl -s -o /tmp/smoke_health.json -w "%{http_code}" "$BASE_URL/health")
-expect_status "health check" "200" "$HEALTH_BODY"
+HEALTH_STATUS=$(curl -s -o /tmp/smoke_health.json -w "%{http_code}" "$BASE_URL/health")
+CURL_EXIT=$?
+
+if [ "$CURL_EXIT" -ne 0 ] || [ "$HEALTH_STATUS" = "000" ]; then
+  echo "Cannot reach $BASE_URL — is the backend running?" >&2
+  rm -f /tmp/smoke_health.json
+  exit 1
+fi
+
+expect_status "health check" "200" "$HEALTH_STATUS"
 cat /tmp/smoke_health.json
 echo ""
 
