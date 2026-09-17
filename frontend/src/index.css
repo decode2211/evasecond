@@ -1,0 +1,265 @@
+/* Global styling for the whole app. Kept as one plain CSS file (no CSS
+   modules, no UI framework) since the app is small enough that a single
+   stylesheet stays easy to scan. */
+
+:root {
+  color-scheme: dark;
+  --bg: #0f1115;
+  --panel-bg: #171a21;
+  --border: #2a2f3a;
+  --text: #e6e8eb;
+  --text-dim: #9aa0ab;
+  --accent: #4f8cff;
+  --success: #3ecf8e;
+  --error: #ff6b6b;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.app__title {
+  font-size: 1.5rem;
+  margin: 0 0 16px;
+}
+
+.app-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+}
+
+.app__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* --- Sync banner --- */
+
+.sync-banner {
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.sync-banner--upcoming {
+  background: #3a3410;
+  border: 1px solid #6b5e17;
+  color: #ffd866;
+}
+
+.sync-banner--active {
+  background: #0f3a2a;
+  border: 1px solid #1f6b4c;
+  color: #6be3b0;
+}
+
+/* --- MediaWindow --- */
+
+.media-window {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.media-window__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.media-window__name {
+  font-weight: 600;
+}
+
+.media-window__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  background: var(--accent);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.media-window__stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-window__media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.media-window__blank {
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+}
+
+.media-window__fallback {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  padding: 16px;
+  text-align: center;
+}
+
+.media-window__preload {
+  display: none;
+}
+
+.media-window__footer {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.media-window__label {
+  color: var(--text);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-window__progress-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.media-window__progress-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.media-window__times {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* --- ControlPanel --- */
+
+.control-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.control-panel__title {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.control-panel__section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.control-panel__section:first-of-type {
+  border-top: none;
+}
+
+.control-panel__section h3 {
+  width: 100%;
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.control-panel__section label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  gap: 4px;
+}
+
+.control-panel__section input,
+.control-panel__section select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+
+.control-panel__section button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.control-panel__section button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.control-panel__button-row {
+  display: flex;
+  gap: 8px;
+}
+
+.control-panel__button-row button:last-child {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.control-panel__error {
+  width: 100%;
+  color: var(--error);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
+
+.control-panel__success {
+  width: 100%;
+  color: var(--success);
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+}
