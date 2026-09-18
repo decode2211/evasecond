@@ -1,7 +1,7 @@
 services:
   - type: web
     name: eva2-backend
-    env: docker
+    runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
     plan: free
