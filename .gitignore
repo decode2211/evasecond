@@ -1,10 +1,15 @@
-# Claude Code runtime state (not part of the project)
+# AI-assistant / tool state (not part of the project)
 .claude/
+CLAUDE.md
+.cursor/
+.aider*
 
-# Backend
+# Backend build output and Go test artifacts
 backend/server
 backend/eva2-server
 backend/*.exe
+*.test
+*.out
 
 # Frontend / Node
 node_modules/
@@ -12,12 +17,21 @@ dist/
 build/
 coverage/
 
-# Env files with real secrets (but keep .env.example tracked)
+# Env files with real secrets — this also catches Vite's .env.local and
+# .env.production variants — but keep the .env.example templates tracked
 .env
+.env.*
 *.env
 !.env.example
-!*/.env.example
+
+# Merge / patch leftovers
+*.orig
+*.rej
 
 # OS / editor cruft
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
 *.log

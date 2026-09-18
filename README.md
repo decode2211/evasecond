@@ -211,7 +211,7 @@ is printed — that's normal. Stop with `Ctrl+C`.
 **Window 3 — frontend:**
 ```bash
 cd /e/eva2/frontend
-cp .env.example .env   # first time only — then edit VITE_API_BASE_URL if needed
+cp .env.example .env   # first time only — then set VITE_API_BASE_URL=http://localhost:8099 in .env to match the backend above
 npm install             # first time only
 npm run dev
 ```

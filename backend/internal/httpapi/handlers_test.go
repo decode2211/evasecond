@@ -7,7 +7,7 @@
 // connection string to run them (see docker-compose.yml for a ready-made
 // local one), e.g.:
 //
-//	TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/eva2_test?sslmode=disable go test ./internal/httpapi/...
+//	TEST_DATABASE_URL="postgres://postgres:postgres@localhost:5433/eva2?sslmode=disable" go test ./internal/httpapi/...
 //
 // Without it, these tests skip themselves with a clear message rather than
 // failing.
@@ -35,7 +35,7 @@ func newTestServer(t *testing.T) (*Server, http.Handler) {
 
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
-		t.Skip("TEST_DATABASE_URL not set; skipping HTTP integration tests. Set it to a Postgres connection string to run them, e.g. postgres://postgres:postgres@localhost:5432/eva2_test?sslmode=disable")
+		t.Skip("TEST_DATABASE_URL not set; skipping HTTP integration tests. Set it to a Postgres connection string to run them, e.g. postgres://postgres:postgres@localhost:5433/eva2?sslmode=disable")
 	}
 
 	ctx := context.Background()
