@@ -1,9 +1,3 @@
-# AI-assistant / tool state (not part of the project)
-.claude/
-CLAUDE.md
-.cursor/
-.aider*
-
 # Backend build output and Go test artifacts
 backend/server
 backend/eva2-server
