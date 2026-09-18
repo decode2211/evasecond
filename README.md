@@ -11,8 +11,18 @@ backend is Go + PostgreSQL; the frontend is React + TypeScript; both are
 built to be deployed for free (Render + Neon + Vercel).
 
 **Live URLs:**
-- Frontend: `<TODO: fill in after deploying to Vercel>`
-- Backend API: `<TODO: fill in after deploying to Render>`
+- Frontend: https://evasecond.vercel.app
+- Backend API: https://eva2-backend-uar8.onrender.com
+- Health check: https://eva2-backend-uar8.onrender.com/health
+
+> **Reviewer note — Render free tier cold start:** the backend runs on
+> Render's free tier, which spins the service down after a period of
+> inactivity. If nobody has hit it recently, the *first* request can take
+> **30–50 seconds** to respond while it wakes back up. **Open the health
+> check URL above first and wait for it to return `{"status":"ok","db":"ok"}`
+> before opening the frontend** — otherwise the frontend's first few API
+> calls will simply time out or fail while the backend is still waking up,
+> which looks like a bug but isn't one.
 
 ## 2. How it works, in plain English
 
@@ -214,9 +224,9 @@ Wait for Vite to print `Local: http://localhost:5173/`. Stop with
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PORT` | `8080` | TCP port the HTTP server listens on |
-| `DATABASE_URL` | *(required)* | Postgres connection string |
-| `CORS_ORIGINS` | *(empty)* | Comma-separated list of frontend origins allowed to call the API from a browser |
+| `PORT` | `8080` | TCP port the HTTP server listens on. On Render, leave this unset — Render's Docker runtime injects its own `PORT` and the app already reads whatever is set. |
+| `DATABASE_URL` | *(required)* | Postgres connection string. **Local (docker-compose):** `postgres://postgres:postgres@localhost:5433/eva2?sslmode=disable` — database name `eva2`, port `5433`, no TLS. **Production (Neon):** `postgres://user:pass@ep-xxxx.neon.tech/neondb?sslmode=require&channel_binding=require` — Neon's default database is named `neondb` (not `eva2`), and Neon's connection strings require both `sslmode=require` and `channel_binding=require`. |
+| `CORS_ORIGINS` | *(empty)* | Comma-separated list of frontend origins allowed to call the API from a browser. Production value: `https://evasecond.vercel.app` |
 | `CYCLE_SECONDS` | `18000` | Length of one playlist cycle, in seconds (5 hours) |
 | `SYNC_LEAD_MS` | `1500` | How far in the future a new sync's `starts_at` is set |
 | `SEED_ON_START` | `true` | Insert placeholder demo data the first time the DB is empty |
@@ -291,26 +301,36 @@ curl -X DELETE http://localhost:8099/api/sync
 
 ## 10. Deployment
 
-1. **Database (Neon):** create a free Neon Postgres project, copy its
-   connection string (make sure it includes `sslmode=require`).
+This is deployed and live at the URLs in §1. Steps taken (for reference, or
+to redeploy from scratch):
+
+1. **Database (Neon):** create a free Neon Postgres project. Neon names its
+   default database `neondb` (not `eva2` — that name is only used by the
+   local docker-compose setup). Copy the connection string — Neon's
+   connection strings require both `sslmode=require` and
+   `channel_binding=require`, e.g.:
+   `postgres://user:pass@ep-xxxx.neon.tech/neondb?sslmode=require&channel_binding=require`
 2. **Backend (Render):** create a new Web Service from this repo using the
    included `render.yaml` (Render will detect it as a Blueprint). Set
-   `DATABASE_URL` to the Neon connection string and leave `CORS_ORIGINS`
-   blank for now — you'll fill it in after step 3. Render will build
-   `backend/Dockerfile` and health-check `/health`.
+   `DATABASE_URL` to the Neon connection string above and leave
+   `CORS_ORIGINS` blank for now — you'll fill it in after step 3. Render
+   will build `backend/Dockerfile` and health-check `/health`.
+   Live: https://eva2-backend-uar8.onrender.com
    - **Cold starts:** Render's free tier spins down an idle service. The
      first request after a period of inactivity can take **30–50 seconds**
-     to respond while it wakes back up — this is expected, not a bug.
+     to respond while it wakes back up — this is expected, not a bug. See
+     the reviewer note in §1.
 3. **Frontend (Vercel):** import this repo, set the project root to
-   `frontend/`, and set the env var `VITE_API_BASE_URL` to your Render
+   `frontend/`, and set the env var `VITE_API_BASE_URL` to the Render
    backend's URL. `frontend/vercel.json` handles SPA routing.
+   Live: https://evasecond.vercel.app
 4. **Close the loop:** go back to the Render service and set
-   `CORS_ORIGINS` to your Vercel frontend's URL (e.g.
-   `https://your-app.vercel.app`), then redeploy the backend so the new
+   `CORS_ORIGINS` to the Vercel frontend's URL
+   (`https://evasecond.vercel.app`), then redeploy the backend so the new
    value takes effect.
 5. Verify everything with the smoke test:
    ```bash
-   scripts/smoke_test.sh https://your-backend.onrender.com
+   scripts/smoke_test.sh https://eva2-backend-uar8.onrender.com
    ```
 
 ## 11. Testing
